@@ -89,10 +89,10 @@
 
         <div class="result-box">
             <div class="field-header">
-                <label>SHA-256 Output</label>
+                <label id="outputLabel">SHA-256 Output</label>
                 <button id="outputCopyButton" class="copy-button" type="button" disabled>Copy</button>
             </div>
-            <div id="output">Computing...</div>
+            <div id="output" aria-labelledby="outputLabel">Computing...</div>
         </div>
 
         <div class="info">
@@ -134,7 +134,8 @@
             try {
                 await navigator.clipboard.writeText(text);
                 button.textContent = 'Copied!';
-            } catch {
+            } catch (error) {
+                console.error('Clipboard copy failed:', error);
                 button.textContent = 'Copy failed';
             }
             setTimeout(() => {
