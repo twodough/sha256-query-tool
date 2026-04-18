@@ -164,10 +164,7 @@
 
         inputField.addEventListener('input', updateHash);
         inputCopyButton.addEventListener('click', () => copyText(inputField.value, inputCopyButton));
-        outputCopyButton.addEventListener('click', () => {
-            if (outputCopyButton.disabled) return;
-            copyText(output.textContent, outputCopyButton);
-        });
+        outputCopyButton.addEventListener('click', () => copyText(output.textContent, outputCopyButton));
 
         // Handle query parameter on load
         window.addEventListener('load', async () => {
