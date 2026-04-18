@@ -165,7 +165,7 @@
         inputField.addEventListener('input', updateHash);
         inputCopyButton.addEventListener('click', () => copyText(inputField.value, inputCopyButton));
         outputCopyButton.addEventListener('click', () => {
-            if (outputCopyButton.disabled || output.textContent === 'Waiting for input...' || output.textContent === 'Computing...') return;
+            if (outputCopyButton.disabled) return;
             copyText(output.textContent, outputCopyButton);
         });
 
