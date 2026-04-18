@@ -89,7 +89,7 @@
 
         <div class="result-box">
             <div class="field-header">
-                <label for="output">SHA-256 Output</label>
+                <label>SHA-256 Output</label>
                 <button id="outputCopyButton" class="copy-button" type="button" disabled>Copy</button>
             </div>
             <div id="output">Computing...</div>
@@ -131,8 +131,12 @@
         async function copyText(text, button) {
             if (!text) return;
             const originalLabel = button.textContent;
-            await navigator.clipboard.writeText(text);
-            button.textContent = 'Copied!';
+            try {
+                await navigator.clipboard.writeText(text);
+                button.textContent = 'Copied!';
+            } catch {
+                button.textContent = 'Copy failed';
+            }
             setTimeout(() => {
                 button.textContent = originalLabel;
             }, 1200);
