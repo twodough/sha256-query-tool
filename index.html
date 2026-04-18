@@ -107,6 +107,7 @@
         const inputCopyButton = document.getElementById('inputCopyButton');
         const outputCopyButton = document.getElementById('outputCopyButton');
         const COPY_FEEDBACK_DURATION_MS = 1200;
+        const WAITING_MESSAGE = 'Waiting for input...';
 
         async function sha256(message) {
             if (!message) return "";
@@ -131,11 +132,15 @@
 
         async function copyText(text, button) {
             const originalLabel = button.textContent;
-            if (!text) {
-                button.textContent = 'Nothing to copy';
+            const resetButtonLabel = () => {
                 setTimeout(() => {
                     button.textContent = originalLabel;
                 }, COPY_FEEDBACK_DURATION_MS);
+            };
+
+            if (!text) {
+                button.textContent = 'Nothing to copy';
+                resetButtonLabel();
                 return;
             }
             try {
@@ -145,16 +150,14 @@
                 console.error('Clipboard copy failed:', error);
                 button.textContent = 'Copy failed';
             }
-            setTimeout(() => {
-                button.textContent = originalLabel;
-            }, COPY_FEEDBACK_DURATION_MS);
+            resetButtonLabel();
         }
 
         async function updateHash() {
             const val = inputField.value;
             updateQueryParam(val);
             if (!val) {
-                output.textContent = "Waiting for input...";
+                output.textContent = WAITING_MESSAGE;
                 outputCopyButton.disabled = true;
                 return;
             }
