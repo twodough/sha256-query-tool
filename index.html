@@ -140,6 +140,7 @@
                 }
                 const timeoutId = setTimeout(() => {
                     button.textContent = originalLabel;
+                    copyFeedbackTimeoutIds.delete(button);
                 }, COPY_FEEDBACK_DURATION_MS);
                 copyFeedbackTimeoutIds.set(button, timeoutId);
             };
@@ -173,10 +174,7 @@
 
         inputField.addEventListener('input', updateHash);
         inputCopyButton.addEventListener('click', () => copyText(inputField.value, inputCopyButton));
-        outputCopyButton.addEventListener('click', () => {
-            if (!/^[a-f0-9]{64}$/.test(output.textContent)) return;
-            copyText(output.textContent, outputCopyButton);
-        });
+        outputCopyButton.addEventListener('click', () => copyText(output.textContent, outputCopyButton));
 
         // Handle query parameter on load
         window.addEventListener('load', async () => {
