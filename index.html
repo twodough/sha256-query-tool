@@ -22,6 +22,13 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
         label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #555; }
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
         textarea {
             width: 100%;
             min-height: 120px;
@@ -52,18 +59,40 @@
             color: #666;
         }
         code { background: #eee; padding: 0.2rem 0.4rem; border-radius: 3px; }
+        .copy-button {
+            border: 1px solid #ddd;
+            background: #fff;
+            color: #333;
+            border-radius: 4px;
+            padding: 0.35rem 0.7rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .copy-button:hover {
+            background: #f5f5f5;
+        }
+        .copy-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>SHA-256 Hasher</h1>
         
-        <label for="inputField">Input</label>
+        <div class="field-header">
+            <label for="inputField">Input</label>
+            <button id="inputCopyButton" class="copy-button" type="button">Copy</button>
+        </div>
         <textarea id="inputField" placeholder="Type or paste content here..."></textarea>
 
         <div class="result-box">
-            <label>SHA-256 Output</label>
-            <div id="output">Computing...</div>
+            <div class="field-header">
+                <label id="outputLabel">SHA-256 Output</label>
+                <button id="outputCopyButton" class="copy-button" type="button" disabled>Copy</button>
+            </div>
+            <div id="output" aria-labelledby="outputLabel">Computing...</div>
         </div>
 
         <div class="info">
@@ -75,6 +104,11 @@
     <script>
         const inputField = document.getElementById('inputField');
         const output = document.getElementById('output');
+        const inputCopyButton = document.getElementById('inputCopyButton');
+        const outputCopyButton = document.getElementById('outputCopyButton');
+        const COPY_FEEDBACK_DURATION_MS = 1200;
+        const WAITING_MESSAGE = 'Waiting for input...';
+        const copyFeedbackTimeoutIds = new Map();
 
         async function sha256(message) {
             if (!message) return "";
@@ -85,16 +119,62 @@
             return hashHex;
         }
 
+        function updateQueryParam(value) {
+            const params = new URLSearchParams(window.location.search);
+            if (value) {
+                params.set('input', value);
+            } else {
+                params.delete('input');
+            }
+            const query = params.toString();
+            const nextUrl = `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`;
+            window.history.replaceState(null, '', nextUrl);
+        }
+
+        async function copyText(text, button) {
+            const originalLabel = button.textContent;
+            const resetButtonLabel = () => {
+                const existingTimeoutId = copyFeedbackTimeoutIds.get(button);
+                if (existingTimeoutId) {
+                    clearTimeout(existingTimeoutId);
+                }
+                const timeoutId = setTimeout(() => {
+                    button.textContent = originalLabel;
+                    copyFeedbackTimeoutIds.delete(button);
+                }, COPY_FEEDBACK_DURATION_MS);
+                copyFeedbackTimeoutIds.set(button, timeoutId);
+            };
+
+            if (!text) {
+                button.textContent = 'Nothing to copy';
+                resetButtonLabel();
+                return;
+            }
+            try {
+                await navigator.clipboard.writeText(text);
+                button.textContent = 'Copied!';
+            } catch (error) {
+                console.error('Clipboard copy failed:', error);
+                button.textContent = 'Copy failed';
+            }
+            resetButtonLabel();
+        }
+
         async function updateHash() {
             const val = inputField.value;
+            updateQueryParam(val);
             if (!val) {
-                output.textContent = "Waiting for input...";
+                output.textContent = WAITING_MESSAGE;
+                outputCopyButton.disabled = true;
                 return;
             }
             output.textContent = await sha256(val);
+            outputCopyButton.disabled = false;
         }
 
         inputField.addEventListener('input', updateHash);
+        inputCopyButton.addEventListener('click', () => copyText(inputField.value, inputCopyButton));
+        outputCopyButton.addEventListener('click', () => copyText(output.textContent, outputCopyButton));
 
         // Handle query parameter on load
         window.addEventListener('load', async () => {
