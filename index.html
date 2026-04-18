@@ -129,8 +129,14 @@
         }
 
         async function copyText(text, button) {
-            if (!text) return;
             const originalLabel = button.textContent;
+            if (!text) {
+                button.textContent = 'Nothing to copy';
+                setTimeout(() => {
+                    button.textContent = originalLabel;
+                }, 1200);
+                return;
+            }
             try {
                 await navigator.clipboard.writeText(text);
                 button.textContent = 'Copied!';
@@ -157,7 +163,10 @@
 
         inputField.addEventListener('input', updateHash);
         inputCopyButton.addEventListener('click', () => copyText(inputField.value, inputCopyButton));
-        outputCopyButton.addEventListener('click', () => copyText(output.textContent, outputCopyButton));
+        outputCopyButton.addEventListener('click', () => {
+            if (outputCopyButton.disabled || output.textContent === 'Waiting for input...') return;
+            copyText(output.textContent, outputCopyButton);
+        });
 
         // Handle query parameter on load
         window.addEventListener('load', async () => {
