@@ -98,6 +98,7 @@
         <div class="info">
             <p>💡 <strong>Tip:</strong> You can pass an initial value via the <code>input</code> query parameter.</p>
             <p>Example: <code>?input=hello-world</code></p>
+            <button id="urlCopyButton" class="copy-button" type="button">Copy URL</button>
         </div>
     </div>
 
@@ -106,6 +107,7 @@
         const output = document.getElementById('output');
         const inputCopyButton = document.getElementById('inputCopyButton');
         const outputCopyButton = document.getElementById('outputCopyButton');
+        const urlCopyButton = document.getElementById('urlCopyButton');
         const COPY_FEEDBACK_DURATION_MS = 1200;
         const WAITING_MESSAGE = 'Waiting for input...';
         const copyFeedbackTimeoutIds = new Map();
@@ -175,6 +177,7 @@
         inputField.addEventListener('input', updateHash);
         inputCopyButton.addEventListener('click', () => copyText(inputField.value, inputCopyButton));
         outputCopyButton.addEventListener('click', () => copyText(output.textContent, outputCopyButton));
+        urlCopyButton.addEventListener('click', () => copyText(window.location.href, urlCopyButton));
 
         // Handle query parameter on load
         window.addEventListener('load', async () => {
