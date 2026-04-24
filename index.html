@@ -53,6 +53,31 @@
             color: #007bff;
             margin-top: 0.5rem;
         }
+        .compare-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+        }
+        #compareInput {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            box-sizing: border-box;
+            margin-top: 0.5rem;
+        }
+        #compareResult {
+            margin-top: 0.75rem;
+            font-size: 1rem;
+            font-weight: bold;
+            min-height: 1.4em;
+        }
+        #compareResult.match { color: #28a745; }
+        #compareResult.mismatch { color: #dc3545; }
         .info {
             margin-top: 2rem;
             font-size: 0.9rem;
@@ -135,6 +160,15 @@
             <div id="output" aria-labelledby="outputLabel">Computing...</div>
         </div>
 
+        <div class="compare-box">
+            <div class="field-header">
+                <label for="compareInput">Compare Hash</label>
+                <button id="compareClearButton" class="action-button" type="button">Clear</button>
+            </div>
+            <input type="text" id="compareInput" placeholder="Paste a SHA-256 hash here to compare..." spellcheck="false" autocomplete="off" />
+            <div id="compareResult" role="status" aria-live="polite"></div>
+        </div>
+
         <div class="info">
             <p>💡 <strong>Tip:</strong> You can pass an initial value via the <code>input</code> query parameter.</p>
             <p>Example: <code>?input=hello-world</code></p>
@@ -150,6 +184,9 @@
         const saltButton = document.getElementById('saltButton');
         const clearButton = document.getElementById('clearButton');
         const urlDisplay = document.getElementById('urlDisplay');
+        const compareInput = document.getElementById('compareInput');
+        const compareResult = document.getElementById('compareResult');
+        const compareClearButton = document.getElementById('compareClearButton');
         const COPY_FEEDBACK_DURATION_MS = 1200;
         const WAITING_MESSAGE = 'Waiting for input...';
         const copyFeedbackTimeoutIds = new Map();
@@ -218,16 +255,39 @@
             if (!val) {
                 output.textContent = WAITING_MESSAGE;
                 outputCopyButton.disabled = true;
+                updateCompareResult('');
                 return;
             }
             output.textContent = await sha256(val);
             outputCopyButton.disabled = false;
+            updateCompareResult(output.textContent);
+        }
+
+        function updateCompareResult(computedHash) {
+            const candidate = compareInput.value.trim().toLowerCase();
+            if (!candidate) {
+                compareResult.textContent = '';
+                compareResult.className = '';
+                return;
+            }
+            if (computedHash && candidate === computedHash.toLowerCase()) {
+                compareResult.textContent = '✅ Hashes match';
+                compareResult.className = 'match';
+            } else {
+                compareResult.textContent = '❌ Hashes do not match';
+                compareResult.className = 'mismatch';
+            }
         }
 
         inputField.addEventListener('input', updateHash);
         inputCopyButton.addEventListener('click', () => copyText(inputField.value, inputCopyButton));
         outputCopyButton.addEventListener('click', () => copyText(output.textContent, outputCopyButton));
         urlCopyButton.addEventListener('click', () => copyText(window.location.href, urlCopyButton));
+        compareInput.addEventListener('input', () => updateCompareResult(output.textContent));
+        compareClearButton.addEventListener('click', () => {
+            compareInput.value = '';
+            updateCompareResult(output.textContent);
+        });
         saltButton.addEventListener('click', () => {
             const sep = inputField.value.length > 0 ? '-' : '';
             inputField.value += sep + generateSalt();
